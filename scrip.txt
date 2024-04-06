@@ -1,0 +1,192 @@
+Script Laravel
+
+#Procedimientos de Proyecto de clase de Base de Datos II 
+#Requisitos: 
+# MySQL, PHP8 >, Composer
+
+composer create-project laravel/laravel appMesaAyudaInformatica
+cd appMesaAyudaInformatica
+
+#Creación de base de datos en Mysql
+DB_DATABASE=MesaAyudaInformatica
+DB_USERNAME=umesaayuda 
+DB_PASSWORD=SMAInformatica24
+
+#Cambio de valor de las variables del ambiente .env 
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=MesaAyudaInformatica
+DB_USERNAME=umesaayuda
+DB_PASSWORD=SMAInformatica24
+
+
+#Ejecutar el make migration 
+php artisan make:migration puestos
+php artisan make:migration problemas
+php artisan make:migration empleados
+php artisan make:migration responsabilidads
+php artisan make:migration asignacions
+php artisan make:migration secuencias
+
+
+#En la carpeta de database, dentro de migrations, aparecerá la migración realizada.
+#Dentro colocar la estructrura de un esquema en cada migración según el caso
+
+ public function up(): void
+    {
+        Schema::create('puestos', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->string('nombre', 100);
+            $table->timestamps();
+        });
+        //
+    }
+
+
+    public function up(): void
+    {
+        
+        Schema::create('problemas', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->text('descripcion');
+            $table->enum('estado', ['Abierto', 'En progreso', 'Cerrado'])->default('Abierto');
+            $table->timestamp('fecha_creacion')->useCurrent();
+            $table->timestamp('fecha_actualizacion')->useCurrent()->useCurrentOnUpdate();
+            $table->timestamps();
+        });
+        //
+    }
+
+
+    public function up(): void
+    {
+        
+        Schema::create('empleados', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->string('nombre', 100);
+            $table->unsignedBigInteger('puesto_id');
+
+            $table->foreign('puesto_id')->references('id')->on('puestos');
+            $table->timestamps();
+        });
+    }
+
+    public function up(): void
+    {
+       
+
+        Schema::create('responsabilidads', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->string('descripcion', 255);
+            $table->unsignedBigInteger('puesto_id');
+            $table->foreign('puesto_id')->references('id')->on('puestos');
+            $table->timestamps();
+        });
+        //
+    }
+
+    public function up(): void
+    {
+
+        Schema::create('asignacions', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('empleado_id');
+            $table->unsignedBigInteger('problema_id');
+
+            $table->foreign('empleado_id')->references('id')->on('empleados');
+            $table->foreign('problema_id')->references('id')->on('problemas');
+            $table->timestamps();
+        });
+        //
+    }
+
+    public function up(): void
+    {
+
+
+        Schema::create('secuencias', function (Blueprint $table) {
+            $table->engine="InnoDB";
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('problema_id');
+            $table->string('evento', 100);
+            $table->text('descripcion');
+            $table->timestamp('fecha')->useCurrent();
+
+            $table->foreign('problema_id')->references('id')->on('problemas');
+            $table->timestamps();
+        });
+        //
+    }
+
+
+#Ejecutar la acción de Migración de la base de datos
+php artisan migrate
+
+#A continuación requerimos la ui de laravel. 
+composer require laravel/ui 
+
+#A continuación, importar bootstrap para laravel 
+php artisan ui bootstrap --auth 
+
+#Ejecutar ambos procesos 
+npm install
+
+
+#Instalamos el CRUD de las migraciones 
+composer require ibex/crud-generator --dev
+
+#Agregamos la etiqueta para manejar el CRUD 
+php artisan vendor:publish --tag=crud
+
+
+php artisan make:crud puestos
+php artisan make:crud problemas
+php artisan make:crud empleados
+php artisan make:crud responsabilidads
+php artisan make:crud asignacions
+php artisan make:crud secuencias
+
+
+#Modificar los modelos para retirar los cambios no requeridos
+
+
+#Se deben agregar las tres respectivas rutas en routes\web
+Route::resource('puestos', App\Http\Controllers\PuestoController::class);
+Route::resource('problemas', App\Http\Controllers\ProblemaController::class);
+Route::resource('empleados', App\Http\Controllers\EmpleadoController::class);
+Route::resource('responsabilidads', App\Http\Controllers\ResponsabilidadController::class);
+Route::resource('asignacions', App\Http\Controllers\AsignacionController::class);
+Route::resource('secuencia', App\Http\Controllers\SecuenciumController::class);
+
+#Modificación del archivo Blade de App en Views
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('puestos.index') }}">Puestos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('problemas.index') }}">Problemas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('empleados.index') }}">Empleados</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('responsabilidads.index') }}">Responsabilidades</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('asignacions.index') }}">Asignaciones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('secuencias.index') }}">Secuencia</a>
+                        </li>
+
+
+#Ejecutamos el Server y el Run Dev 
+
+php artisan serve
+
+npm run dev
